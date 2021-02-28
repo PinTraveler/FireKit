@@ -31,7 +31,7 @@ open class UserSessionManager: ObservableObject {
     
     let defaultToAnonymousUser: Bool
     
-    init(defaultToAnonymousUser: Bool = false){
+    public init(defaultToAnonymousUser: Bool = false){
         self.defaultToAnonymousUser = defaultToAnonymousUser
     }
     
