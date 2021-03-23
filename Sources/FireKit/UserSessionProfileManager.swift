@@ -88,15 +88,18 @@ open class UserSessionProfileManager<T: Codable>: UserSessionManager {
         guard let user = user else { return } //TODO: Maybe trigger end session, etc
         self.endSession()
         if user.isAnonymous && isNew {
+            print("UserSessionProfileManager: Auth Session Started for NEW ANON User")
             //TODO: commitProfile should just be self.profile.commit
             self.profileObserver?.data = self.getDefaultProfile(user: user)
             self.commitProfile(){ _ in self.startSession() }
         }
         else if isNew {
+            print("UserSessionProfileManager: Auth Session Started for NEW User")
             self.profileObserver?.data = self.getProfileForUser(user: user)
             self.commitProfile(){ _ in self.startSession() }
         }
         else{
+            print("UserSessionProfileManager: Auth Session Started for EXISTING User")
             self.startSession()
         }
     }

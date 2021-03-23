@@ -48,6 +48,7 @@ public class FirestoreObjectObserver<T: Codable>: ObservableObject {
     }
     
     open func commit(completion: ((Result<Void, Error>) -> Void)?) {
+        print("FirestoreObjectObserver: Commiting Data ", data)
         do {
             // try burda error throw ettiren olay galiba?
             try ref.setData(from: data, merge: true) { error in
