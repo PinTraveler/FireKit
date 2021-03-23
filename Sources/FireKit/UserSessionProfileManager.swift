@@ -30,6 +30,9 @@ open class UserSessionProfileManager<T: Codable>: UserSessionManager {
         preconditionFailure("This method must be overridden")
     }
     
+    open func getProfileForUser(user: FirebaseAuth.User) -> T {
+        preconditionFailure("This method must be overriden")
+    }
     
     // MARK: - Exposed Callbacks
     
@@ -87,9 +90,15 @@ open class UserSessionProfileManager<T: Codable>: UserSessionManager {
         if user.isAnonymous && isNew {
             //TODO: commitProfile should just be self.profile.commit
             self.profile = self.getDefaultProfile(user: user)
-            self.commitProfile()
+            self.commitProfile(){ _ in self.startSession() }
         }
-        self.startSession()
+        else if isNew {
+            self.profile = self.getProfileForUser(user: user)
+            self.commitProfile(){ _ in self.startSession() }
+        }
+        else{
+            self.startSession()
+        }
     }
     
     override open func signup(email: String, password: String, completion: ((Result<Void, Error>) -> Void)? = nil) {
