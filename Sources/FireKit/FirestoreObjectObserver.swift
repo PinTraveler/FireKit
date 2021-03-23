@@ -12,6 +12,7 @@ import SwiftUI
 
 enum PTObserverError: Error {
     case decodeError
+    case nullDataError
 }
 
 public class FirestoreObjectObserver<T: Codable>: ObservableObject {
@@ -48,18 +49,20 @@ public class FirestoreObjectObserver<T: Codable>: ObservableObject {
     }
     
     open func commit(completion: ((Result<Void, Error>) -> Void)?) {
+        guard let data = data else {
+            completion?(.failure(PTObserverError.nullDataError))
+            return
+        }
         do {
             // try burda error throw ettiren olay galiba?
             try ref.setData(from: data, merge: true) { error in
                 if let error = error {
-                    print("ERROR1")
                     completion?(.failure(error))
                 } else {
                     completion?(.success(()))
                 }
             }
         } catch {
-            print("ERROR2")
             completion?(.failure(error))
         }
     }
