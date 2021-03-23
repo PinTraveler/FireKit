@@ -89,11 +89,11 @@ open class UserSessionProfileManager<T: Codable>: UserSessionManager {
         self.endSession()
         if user.isAnonymous && isNew {
             //TODO: commitProfile should just be self.profile.commit
-            self.profile = self.getDefaultProfile(user: user)
+            self.profileObserver?.data = self.getDefaultProfile(user: user)
             self.commitProfile(){ _ in self.startSession() }
         }
         else if isNew {
-            self.profile = self.getProfileForUser(user: user)
+            self.profileObserver?.data = self.getProfileForUser(user: user)
             self.commitProfile(){ _ in self.startSession() }
         }
         else{
