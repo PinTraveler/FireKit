@@ -20,7 +20,7 @@ public class FirestoreObjectObserver<T: Codable>: ObservableObject {
     var ref: DocumentReference
     var onChange: ((Result<T, Error>) -> Void)? = nil
     
-    init(ref: DocumentReference, onChangeHandler: @escaping ((Result<T, Error>) -> Void)) {
+    init(ref: DocumentReference, onChangeHandler: ((Result<T, Error>) -> Void)? = nil) {
         self.ref = ref
         self.onChange = onChangeHandler
     }
