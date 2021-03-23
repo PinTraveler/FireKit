@@ -9,13 +9,13 @@ import Foundation
 import FirebaseFirestore
 import FirebaseAuth
 
-open class UserSessionProfileManager<T: Codable>: UserSessionManager {
+open class UserSessionProfileManager<T>: UserSessionManager where T: Codable, T: FireIdentifiable {
     
     // Note: Replicated here for State Update Propagation
     // Need to find a better way
     @Published public var profile: T? = nil
     
-    var profileObserver: FirestoreObjectObserver<T>? = nil
+    var profileObserver: FireObjectManager<T>? = nil
     
     public let profileCollection: CollectionReference = Firestore.firestore().collection("profile")
     
@@ -57,7 +57,7 @@ open class UserSessionProfileManager<T: Codable>: UserSessionManager {
             return
         }
         
-        profileObserver = FirestoreObjectObserver(ref: profileCollection.document(userID)) { result in
+        profileObserver = FireObjectManager(ref: profileCollection.document(userID)) { result in
             print("PTUserSessionProfileManager: Profile Changed")
             switch(result){
             case .success(let data):
@@ -90,13 +90,13 @@ open class UserSessionProfileManager<T: Codable>: UserSessionManager {
         if user.isAnonymous && isNew {
             print("UserSessionProfileManager: Auth Session Started for NEW ANON User")
             //TODO: commitProfile should just be self.profile.commit
-            self.profileObserver = FirestoreObjectObserver(ref: profileCollection.document(user.uid))
+            self.profileObserver = FireObjectManager(ref: profileCollection.document(user.uid))
             self.profileObserver?.data = self.getDefaultProfile(user: user)
             self.commitProfile(){ _ in self.startSession() }
         }
         else if isNew {
             print("UserSessionProfileManager: Auth Session Started for NEW User")
-            self.profileObserver = FirestoreObjectObserver(ref: profileCollection.document(user.uid))
+            self.profileObserver = FireObjectManager(ref: profileCollection.document(user.uid))
             self.profileObserver?.data = self.getProfileForUser(user: user)
             self.commitProfile(){ _ in self.startSession() }
         }

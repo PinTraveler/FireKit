@@ -10,11 +10,16 @@ import FirebaseFirestore
 import FirebaseFirestoreSwift
 import SwiftUI
 
-enum PTObserverError: Error {
+enum FireError: Error {
     case decodeError
+    case indexOutOfBoundsError
 }
 
-public class FirestoreObjectObserver<T: Codable>: ObservableObject {
+public protocol FireIdentifiable {
+    var id: String { get }
+}
+
+public class FireObjectManager<T>: ObservableObject where T: Codable, T: FireIdentifiable {
     @Published var data: T? = nil
     var listener: ListenerRegistration? = nil
     var ref: DocumentReference
@@ -33,7 +38,7 @@ public class FirestoreObjectObserver<T: Codable>: ObservableObject {
             }
             
             guard let data = try? snapshot?.data(as: T.self) else {
-                self.onChange?(.failure(PTObserverError.decodeError))
+                self.onChange?(.failure(FireError.decodeError))
                 return
             }
             
