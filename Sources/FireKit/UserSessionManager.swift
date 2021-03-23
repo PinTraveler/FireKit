@@ -176,17 +176,19 @@ open class UserSessionManager: ObservableObject {
             linkAuth(with: email, password: password, completion: completion)
         } else {
             print("PTUserSessionManager: Signing Up (New User)")
+            self.isNew = true
             Auth.auth().createUser(withEmail: email, password: password) { authResult, error in
                 //TODO: Not Tested, blatantly plagiarised from @canersoz02
                 if let error = error {
                     print("PTUserSessionManager: Signing Up (Error)")
                     print("PTUserSessionManager: ", error)
+                    self.isNew = false
                     completion?(.failure(error))
                 } else if authResult != nil {
                     print("PTUserSessionManager: Signing Up (Success)")
-                    self.isNew = true
                     completion?(.success(()))
                 } else {
+                    self.isNew = false
                     completion?(.failure(PTUserSessionError.unknownAuthError))
                 }
             }
