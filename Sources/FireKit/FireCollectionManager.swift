@@ -100,7 +100,11 @@ public class FireCollectionManager<T>: ObservableObject where T: Codable, T: Com
             completion?(.failure(FireError.indexOutOfBoundsError))
             return
         }
-        remove(by: self.data[index].id, completion: completion)
+        guard let id = self.data[index].id else {
+            completion?(.failure(FireError.nilIDError))
+            return
+        }
+        remove(by: id, completion: completion)
     }
     
     open func remove(at indices: [Int], completion: ((Result<Void, Error>)-> Void)? = nil){
@@ -116,9 +120,13 @@ public class FireCollectionManager<T>: ObservableObject where T: Codable, T: Com
     
     open func insert(_ elem: T, completion: ((Result<Void, Error>)-> Void)? = nil) {
         print("FirestoreCollectionManager: Commiting Data ", data)
+        guard let id = elem.id else {
+            completion?(.failure(FireError.nilIDError))
+            return
+        }
         do {
             // try burda error throw ettiren olay galiba?
-            try ref.document(elem.id).setData(from: elem, merge: true) { error in
+            try ref.document(id).setData(from: elem, merge: true) { error in
                 if let error = error {
                     completion?(.failure(error))
                 } else {

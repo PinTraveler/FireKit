@@ -13,6 +13,7 @@ import SwiftUI
 enum FireError: Error {
     case decodeError
     case indexOutOfBoundsError
+    case nilIDError
 }
 
 public protocol FireIdentifiable {
