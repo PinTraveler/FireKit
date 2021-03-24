@@ -13,11 +13,21 @@ import FirebaseFirestoreSwift
 public class FireCollectionManager<T>: ObservableObject where T: Codable, T: Comparable, T: FireIdentifiable {
     @Published var data: [T] = []
     var listener: ListenerRegistration? = nil
-    var ref: CollectionReference
+    var ref: CollectionReference?
+    var query: Query?
     var onEvent: ((_ event: DocumentChangeType, _ elem: T?) -> Void)? = nil
     
-    init(ref: CollectionReference, onEvent: ((_ event: DocumentChangeType, _ elem: T?) -> Void)? = nil) {
+    public init(ref: CollectionReference? = nil, query: Query? = nil, onEvent: ((_ event: DocumentChangeType, _ elem: T?) -> Void)? = nil) {
         self.ref = ref
+        self.query = query
+        self.onEvent = onEvent
+    }
+    
+    func setRef(ref: CollectionReference, query: Query?, onEvent: ((_ event: DocumentChangeType, _ elem: T?) -> Void)?) {
+        self.stopListener()
+        self.ref = ref
+        self.query = query != nil ? query : ref
+        
         self.onEvent = onEvent
     }
     
@@ -44,10 +54,14 @@ public class FireCollectionManager<T>: ObservableObject where T: Codable, T: Com
         onEvent?(.removed, elem)
     }
     
-    open func onBatchChanges(changes: [T]) {}
+    open func onBatchChanges(changes: [T]) { }
     
     open func startListener() {
-        listener = ref.addSnapshotListener { snapshot, error in
+        guard let query = query else {
+            print("FireCollectionManager: Error Starting Listener. No Query Object Provided. Please call setRef before startListener!")
+            return
+        }
+        listener = query.addSnapshotListener { snapshot, error in
             if let error = error {
                 print("FireCollectionManager: Error listening for changes ", error)
                 return
@@ -78,6 +92,12 @@ public class FireCollectionManager<T>: ObservableObject where T: Codable, T: Com
         }
     }
     
+    open func stopListener() {
+        listener?.remove()
+        listener = nil
+        data = []
+    }
+    
     // Commits all elements in the data array regardless of whether they have been changed
     open func commitAll(completion: (()-> Void)? = nil){}
     
@@ -89,6 +109,7 @@ public class FireCollectionManager<T>: ObservableObject where T: Codable, T: Com
     
     // Removes the document with the given id if one exists
     open func remove(by id: String, completion: ((Result<Void, Error>)-> Void)? = nil){
+        guard let ref = ref else { completion?(.failure(FireError.nilReferenceError)); return }
         ref.document(id).delete(){ error in
             if let error = error { completion?(.failure(error)) }
             else { completion?(.success(())) }
@@ -124,6 +145,7 @@ public class FireCollectionManager<T>: ObservableObject where T: Codable, T: Com
             completion?(.failure(FireError.nilIDError))
             return
         }
+        guard let ref = ref else { completion?(.failure(FireError.nilReferenceError)); return }
         do {
             // try burda error throw ettiren olay galiba?
             try ref.document(id).setData(from: elem, merge: true) { error in

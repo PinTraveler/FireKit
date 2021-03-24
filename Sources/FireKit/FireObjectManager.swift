@@ -14,6 +14,8 @@ enum FireError: Error {
     case decodeError
     case indexOutOfBoundsError
     case nilIDError
+    case nilReferenceError
+    case nilQueryError
 }
 
 public protocol FireIdentifiable {
