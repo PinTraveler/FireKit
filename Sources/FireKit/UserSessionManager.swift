@@ -30,9 +30,9 @@ open class UserSessionManager: ObservableObject {
     }
     
     let defaultToAnonymousUser: Bool
-    let onAuth: (() -> Void)?
+    let onAuth: ((User) -> Void)?
     
-    public init(defaultToAnonymousUser: Bool = false, onAuth: (() -> Void)? = nil ){
+    public init(defaultToAnonymousUser: Bool = false, onAuth: ((User) -> Void)? = nil ){
         self.defaultToAnonymousUser = defaultToAnonymousUser
         self.onAuth = onAuth
     }
@@ -70,7 +70,7 @@ open class UserSessionManager: ObservableObject {
         
         userID = user.uid
         state = .authenticated
-        onAuth?()
+        onAuth?(user)
     }
     
     open func onAuthSessionEnd() {
