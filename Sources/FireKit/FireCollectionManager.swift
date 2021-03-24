@@ -23,7 +23,7 @@ public class FireCollectionManager<T>: ObservableObject where T: Codable, T: Com
         self.onEvent = onEvent
     }
     
-    public func setRef(ref: CollectionReference, query: Query?, onEvent: ((_ event: DocumentChangeType, _ elem: T?) -> Void)?) {
+    public func setRef(ref: CollectionReference, query: Query?, onEvent: ((_ event: DocumentChangeType, _ elem: T?) -> Void)? = nil) {
         self.stopListener()
         self.ref = ref
         self.query = query != nil ? query : ref
