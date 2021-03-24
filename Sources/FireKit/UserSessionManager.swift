@@ -37,7 +37,6 @@ open class UserSessionManager: ObservableObject {
         self.onAuth = onAuth
     }
     
-    
     public var initialized: Bool {
         state != .initializing
     }

@@ -11,7 +11,7 @@ import FirebaseFirestoreSwift
 
 
 public class FireCollectionManager<T>: ObservableObject where T: Codable, T: Comparable, T: FireIdentifiable {
-    @Published var data: [T] = []
+    @Published public var data: [T] = []
     var listener: ListenerRegistration? = nil
     var ref: CollectionReference?
     var query: Query?
