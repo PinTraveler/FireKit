@@ -16,7 +16,7 @@ enum FireError: Error {
 }
 
 public protocol FireIdentifiable {
-    var id: String { get }
+    var id: String? { get }
 }
 
 public class FireObjectManager<T>: ObservableObject where T: Codable, T: FireIdentifiable {
