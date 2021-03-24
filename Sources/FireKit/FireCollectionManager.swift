@@ -23,7 +23,7 @@ public class FireCollectionManager<T>: ObservableObject where T: Codable, T: Com
         self.onEvent = onEvent
     }
     
-    func setRef(ref: CollectionReference, query: Query?, onEvent: ((_ event: DocumentChangeType, _ elem: T?) -> Void)?) {
+    public func setRef(ref: CollectionReference, query: Query?, onEvent: ((_ event: DocumentChangeType, _ elem: T?) -> Void)?) {
         self.stopListener()
         self.ref = ref
         self.query = query != nil ? query : ref
@@ -31,24 +31,24 @@ public class FireCollectionManager<T>: ObservableObject where T: Codable, T: Com
         self.onEvent = onEvent
     }
     
-    func insertionIndexOf(_ elem: T) -> Int {
+    public func insertionIndexOf(_ elem: T) -> Int {
         let i = self.data.firstIndex(where: { $0 <= elem })
         guard let index = i else { return self.data.count }
         return index
     }
     
-    func onInternalAdd(_ elem: T) {
+    open func onInternalAdd(_ elem: T) {
         self.data.insert(elem, at: insertionIndexOf(elem))
         onEvent?(.added, elem)
     }
     
-    func onInternalChange(_ elem: T) {
+    open func onInternalChange(_ elem: T) {
         guard let i = self.data.firstIndex(of: elem) else { return }
         self.data[i] = elem
         onEvent?(.modified, elem)
     }
     
-    func onInternalRemove(_ elem: T) {
+    open func onInternalRemove(_ elem: T) {
         guard let i = self.data.firstIndex(of: elem) else { return }
         self.data.remove(at: i)
         onEvent?(.removed, elem)
