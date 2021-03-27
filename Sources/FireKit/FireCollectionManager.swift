@@ -142,22 +142,22 @@ public class FireCollectionManager<T>: ObservableObject where T: Codable, T: Com
     open func insert(_ elem: T, completion: ((Result<Void, Error>)-> Void)? = nil) {
         print("FirestoreCollectionManager: Commiting Data ", data)
         guard let id = elem.id else {
-            completion?(.failure(FireError.nilIDError))
+            do {
+                try ref?.addDocument(from: elem) { error in
+                    if let error = error { completion?(.failure(error)) }
+                    else { completion?(.success(())) }
+                }
+            } catch { completion?(.failure(error)) }
             return
         }
         guard let ref = ref else { completion?(.failure(FireError.nilReferenceError)); return }
         do {
             // try burda error throw ettiren olay galiba?
             try ref.document(id).setData(from: elem, merge: true) { error in
-                if let error = error {
-                    completion?(.failure(error))
-                } else {
-                    completion?(.success(()))
-                }
+                if let error = error { completion?(.failure(error)) }
+                else { completion?(.success(())) }
             }
-        } catch {
-            completion?(.failure(error))
-        }
+        } catch { completion?(.failure(error)) }
     }
 
 }
