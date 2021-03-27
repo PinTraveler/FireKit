@@ -43,13 +43,13 @@ public class FireCollectionManager<T>: ObservableObject where T: Codable, T: Com
     }
     
     open func onInternalChange(_ elem: T) {
-        guard let i = self.data.firstIndex(of: elem) else { return }
+        guard let i = self.data.firstIndex(where: { $0.id == elem.id }) else { return }
         self.data[i] = elem
         onEvent?(.modified, elem)
     }
     
     open func onInternalRemove(_ elem: T) {
-        guard let i = self.data.firstIndex(of: elem) else { return }
+        guard let i = self.data.firstIndex(where: { $0.id == elem.id }) else { return }
         self.data.remove(at: i)
         onEvent?(.removed, elem)
     }
@@ -79,13 +79,13 @@ public class FireCollectionManager<T>: ObservableObject where T: Codable, T: Com
                 changes.append(elem)
                 switch(change.type) {
                 case .added:
-                    if self.data.contains(elem){ self.onInternalChange(elem) }
+                    if self.data.contains(where: { $0.id == elem.id }){ self.onInternalChange(elem) }
                     else { self.onInternalAdd(elem) }
                 case .modified:
-                    if self.data.contains(elem){ self.onInternalChange(elem) }
+                    if self.data.contains(where: { $0.id == elem.id }){ self.onInternalChange(elem) }
                     else { self.onInternalAdd(elem) }
                 case .removed:
-                    if self.data.contains(elem) { self.onInternalRemove(elem) }
+                    if self.data.contains(where: { $0.id == elem.id }) { self.onInternalRemove(elem) }
                 }
             }
             self.onBatchChanges(changes: changes)
