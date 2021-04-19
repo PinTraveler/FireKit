@@ -10,17 +10,25 @@ import FirebaseFirestore
 import FirebaseFirestoreSwift
 import SwiftUI
 
-enum PTObserverError: Error {
+enum FireError: Error {
     case decodeError
+    case indexOutOfBoundsError
+    case nilIDError
+    case nilReferenceError
+    case nilQueryError
 }
 
-public class FirestoreObjectObserver<T: Codable>: ObservableObject {
+public protocol FireIdentifiable {
+    var id: String? { get }
+}
+
+public class FireObjectManager<T>: ObservableObject where T: Codable, T: FireIdentifiable {
     @Published var data: T? = nil
     var listener: ListenerRegistration? = nil
     var ref: DocumentReference
     var onChange: ((Result<T, Error>) -> Void)? = nil
     
-    init(ref: DocumentReference, onChangeHandler: @escaping ((Result<T, Error>) -> Void)) {
+    init(ref: DocumentReference, onChangeHandler: ((Result<T, Error>) -> Void)? = nil) {
         self.ref = ref
         self.onChange = onChangeHandler
     }
@@ -33,7 +41,7 @@ public class FirestoreObjectObserver<T: Codable>: ObservableObject {
             }
             
             guard let data = try? snapshot?.data(as: T.self) else {
-                self.onChange?(.failure(PTObserverError.decodeError))
+                self.onChange?(.failure(FireError.decodeError))
                 return
             }
             
@@ -48,18 +56,17 @@ public class FirestoreObjectObserver<T: Codable>: ObservableObject {
     }
     
     open func commit(completion: ((Result<Void, Error>) -> Void)?) {
+        print("FirestoreObjectObserver: Commiting Data ", data)
         do {
             // try burda error throw ettiren olay galiba?
             try ref.setData(from: data, merge: true) { error in
                 if let error = error {
-                    print("ERROR1")
                     completion?(.failure(error))
                 } else {
                     completion?(.success(()))
                 }
             }
         } catch {
-            print("ERROR2")
             completion?(.failure(error))
         }
     }

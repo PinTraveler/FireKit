@@ -9,13 +9,13 @@ import Foundation
 import FirebaseFirestore
 import FirebaseAuth
 
-open class UserSessionProfileManager<T: Codable>: UserSessionManager {
+open class UserSessionProfileManager<T>: UserSessionManager where T: Codable, T: FireIdentifiable {
     
     // Note: Replicated here for State Update Propagation
     // Need to find a better way
     @Published public var profile: T? = nil
     
-    var profileObserver: FirestoreObjectObserver<T>? = nil
+    var profileObserver: FireObjectManager<T>? = nil
     
     public let profileCollection: CollectionReference = Firestore.firestore().collection("profile")
     
@@ -30,6 +30,9 @@ open class UserSessionProfileManager<T: Codable>: UserSessionManager {
         preconditionFailure("This method must be overridden")
     }
     
+    open func getProfileForUser(user: FirebaseAuth.User) -> T {
+        preconditionFailure("This method must be overriden")
+    }
     
     // MARK: - Exposed Callbacks
     
@@ -54,7 +57,7 @@ open class UserSessionProfileManager<T: Codable>: UserSessionManager {
             return
         }
         
-        profileObserver = FirestoreObjectObserver(ref: profileCollection.document(userID)) { result in
+        profileObserver = FireObjectManager(ref: profileCollection.document(userID)) { result in
             print("PTUserSessionProfileManager: Profile Changed")
             switch(result){
             case .success(let data):
@@ -85,11 +88,22 @@ open class UserSessionProfileManager<T: Codable>: UserSessionManager {
         guard let user = user else { return } //TODO: Maybe trigger end session, etc
         self.endSession()
         if user.isAnonymous && isNew {
+            print("UserSessionProfileManager: Auth Session Started for NEW ANON User")
             //TODO: commitProfile should just be self.profile.commit
-            self.profile = self.getDefaultProfile(user: user)
-            self.commitProfile()
+            self.profileObserver = FireObjectManager(ref: profileCollection.document(user.uid))
+            self.profileObserver?.data = self.getDefaultProfile(user: user)
+            self.commitProfile(){ _ in self.startSession() }
         }
-        self.startSession()
+        else if isNew {
+            print("UserSessionProfileManager: Auth Session Started for NEW User")
+            self.profileObserver = FireObjectManager(ref: profileCollection.document(user.uid))
+            self.profileObserver?.data = self.getProfileForUser(user: user)
+            self.commitProfile(){ _ in self.startSession() }
+        }
+        else{
+            print("UserSessionProfileManager: Auth Session Started for EXISTING User")
+            self.startSession()
+        }
     }
     
     override open func signup(email: String, password: String, completion: ((Result<Void, Error>) -> Void)? = nil) {
